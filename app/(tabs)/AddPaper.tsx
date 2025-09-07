@@ -162,18 +162,21 @@ export default function AddPaper() {
 
         <TextInput
           placeholder="College"
+          placeholderTextColor="#aaa"
           value={college}
           onChangeText={setCollege}
           className="bg-white rounded-md px-4 py-2 mb-4"
         />
         <TextInput
           placeholder="Course"
+          placeholderTextColor="#aaa"
           value={course}
           onChangeText={setCourse}
           className="bg-white rounded-md px-4 py-2 mb-4"
         />
         <TextInput
           placeholder="Semester"
+          placeholderTextColor="#aaa"
           value={semester}
           onChangeText={setSemester}
           keyboardType="number-pad"
@@ -182,12 +185,14 @@ export default function AddPaper() {
         />
         <TextInput
           placeholder="Subject"
+          placeholderTextColor="#aaa"
           value={subject}
           onChangeText={setSubject}
           className="bg-white rounded-md px-4 py-2 mb-4"
         />
         <TextInput
           placeholder="Short Description"
+          placeholderTextColor="#aaa"
           value={description}
           onChangeText={setDescription}
           multiline

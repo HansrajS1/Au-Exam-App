@@ -9,7 +9,7 @@ function RouterGuard({ children }: { children: React.ReactNode }) {
   const segment = useSegments();
 
   useEffect(() => {
-    if (!Array.isArray(segment) || isLoading) return;
+    if (isLoading || !Array.isArray(segment) || segment.length < 1) return;
 
     const currentSegment = segment[0];
     if (typeof currentSegment !== "string") return;
@@ -26,9 +26,11 @@ function RouterGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-
-
 export default function RootLayout() {
+  const { isLoading } = useAuth();
+
+  if (isLoading) return null;
+
   return (
     <AuthProvider>
       <RouterGuard>

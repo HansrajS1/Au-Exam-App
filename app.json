@@ -6,7 +6,11 @@
     "orientation": "portrait",
     "icon": "./assets/images/AppIcon.png",
     "scheme": "auexamapp",
-    "platforms": ["ios", "android", "web"],
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -47,8 +51,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "9b9d4a87-73b8-4554-80ab-479484df3e29"
+        "projectId": "96dac27e-982e-463e-a538-71f6e1f9a712"
       }
-    }
+    },
+    "owner": "hans_raj"
   }
 }
