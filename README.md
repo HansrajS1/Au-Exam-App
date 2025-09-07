@@ -109,7 +109,7 @@ assets/
 
 ---
 
-## 🛠️ Troubleshooting
+##  Troubleshooting
 
 - **White placeholder text in APK**  
   → Set `placeholderTextColor="#000"` explicitly
@@ -135,6 +135,6 @@ bengaluru, India
 
 ---
 
-## 📄 License
+##  License
 
 MIT — feel free to fork, extend, and deploy.
