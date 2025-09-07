@@ -1,8 +1,8 @@
 # AU Exam App
 
 A full-stack mobile application for uploading and managing academic papers, built for Alliance University. Users can submit papers, preview uploads, and manage content by subject, topic, and grade/branch.
-
 ---
+App Apk : [AU Exam App](https://github.com/HansrajS1/Au-Exam-App/blob/main/AU%20Exam%20App-release.apk)
 
 ##  Features
 
