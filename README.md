@@ -32,8 +32,8 @@ A full-stack mobile application for uploading and managing academic papers, buil
 ##  Installation
 
 ```bash
-git clone https://github.com/your-username/au-exam-app.git
-cd au-exam-app
+git clone https://github.com/HansrajS1/Au-Exam-App
+cd Au-Exam-App
 npm install
 ```
 
