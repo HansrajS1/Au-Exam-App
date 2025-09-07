@@ -130,7 +130,7 @@ assets/
 
 ##  Author
 
-**HANS RAJ** — Full-stack mobile developer  
+**HANS RAJ**
 bengaluru, India  
 
 ---
