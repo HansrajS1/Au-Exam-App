@@ -1,50 +1,140 @@
-# Welcome to your Expo app 👋
+# AU Exam App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A full-stack mobile application for uploading and managing academic papers, built for Alliance University. Users can submit papers, preview uploads, and manage content by subject, topic, and grade/branch.
 
-## Get started
+---
 
-1. Install dependencies
+##  Features
 
-   ```bash
-   npm install
-   ```
+-  Upload academic papers (PDF, Word)
+-  Upload preview images
+-  Select university, subject, topic, and grade/branch
+-  Authentication via Appwrite
+-  Context-based routing with Expo Router
+-  Native APK build with full offline support
+-  Real-device testing and crash-free deployment
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
+##  Tech Stack
 
-In the output, you'll find options to open the app in a
+| Layer       | Technology                     |
+|-------------|--------------------------------|
+| Frontend    | React Native + Expo Router     |
+| Backend     | [Spring Boot (REST API)](https://github.com/HansrajS1/Au-Exam-App-backend)      |
+| Auth        | Appwrite                       |
+| Styling     | NativeWind + Tailwind CSS      |
+| Build Tools | EAS Build / Android Studio / CLI |
+| Debugging   | ADB + Hermes + Logcat          |
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+##  Installation
 
 ```bash
-npm run reset-project
+git clone https://github.com/your-username/au-exam-app.git
+cd au-exam-app
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+##  Development
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+npx expo start
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+To test with native modules:
 
-## Join the community
+```bash
+eas build --profile development
+npx expo start --dev-client
+```
 
-Join our community of developers creating universal apps.
+---
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 📱 Building APK Locally
+
+### Option 1: Android Studio
+
+1. Run `npx expo prebuild`
+2. Open `android/` folder in Android Studio
+3. Go to **Build > Build APK(s)**
+4. Find APK at `android/app/build/outputs/apk/release/app-release.apk`
+
+### Option 2: CLI
+
+```bash
+npx expo prebuild
+cd android
+./gradlew clean
+./gradlew assembleRelease
+```
+
+Install on device:
+
+```bash
+adb install app/build/outputs/apk/release/app-release.apk
+```
+
+---
+
+##  Environment Variables
+
+Create a `.env` file:
+
+```env
+APPWRITE_ENDPOINT=https://cloud.example.io/v1
+APPWRITE_PROJECT_ID=your_project_id
+```
+
+Use `react-native-dotenv` to load them.
+
+---
+
+##  Folder Structure
+
+```
+app/
+ ├── (tabs)/         # Tab navigation screens
+ ├── auth/           # Login & signup screens
+ ├── upload/         # Add paper screen
+ ├── _layout.tsx     # Root layout with AuthProvider
+lib/
+ └── authcontext.tsx # Appwrite auth logic
+assets/
+ └── icon.png        # App icon
+```
+
+---
+
+## 🛠️ Troubleshooting
+
+- **White placeholder text in APK**  
+  → Set `placeholderTextColor="#000"` explicitly
+
+- **Hermes crash on APK boot**  
+  → Guard `segment[0]` and context access in `RouterGuard`
+
+- **Appwrite auth warning**  
+  → Ensure `AuthProvider` wraps layout in `_layout.tsx`
+
+- **EAS build fails**  
+  → Use `./gradlew assembleRelease` locally instead
+
+- **Stretched or blurry icon**  
+  → Use 1024×1024 PNG, square, no text, and define adaptive icon in `app.json`
+
+---
+
+##  Author
+
+**HANS RAJ** — Full-stack mobile developer  
+bengaluru, India  
+
+---
+
+## 📄 License
+
+MIT — feel free to fork, extend, and deploy.
