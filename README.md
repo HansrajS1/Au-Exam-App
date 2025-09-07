@@ -54,7 +54,7 @@ npx expo start --dev-client
 
 ---
 
-## 📱 Building APK Locally
+##  Building APK Locally
 
 ### Option 1: Android Studio
 
