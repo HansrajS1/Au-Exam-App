@@ -9,17 +9,24 @@ function RouterGuard({ children }: { children: React.ReactNode }) {
   const segment = useSegments();
 
   useEffect(() => {
-    const isAuth = segment[0] === "auth";
+    if (!Array.isArray(segment) || isLoading) return;
 
-    if (!user && !isAuth && !isLoading) {
+    const currentSegment = segment[0];
+    if (typeof currentSegment !== "string") return;
+
+    const isAuth = currentSegment === "auth";
+
+    if (!user && !isAuth) {
       router.replace("/auth");
-    } else if (user && isAuth && !isLoading) {
+    } else if (user && isAuth) {
       router.replace("/");
     }
-  }, [user, segment]);
+  }, [user, segment, isLoading, router]);
 
   return <>{children}</>;
 }
+
+
 
 export default function RootLayout() {
   return (
@@ -28,7 +35,7 @@ export default function RootLayout() {
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="auth" options={{ headerShown: false }} />
-          <Stack.Screen name="verify" options={{ headerShown: false }} />
+          <Stack.Screen name="EditPaper" options={{ headerShown: false }} />
         </Stack>
       </RouterGuard>
     </AuthProvider>

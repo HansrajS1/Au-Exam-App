@@ -36,7 +36,7 @@ export default function TabsLayout() {
           borderColor: "#0f0D23"
         },
         tabBarIconStyle: {
-          width: "116%",
+          width: "100%",
           height: "100%",
           justifyContent: "center",
           alignItems: "center",

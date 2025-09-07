@@ -11,6 +11,7 @@ type AuthContextType = {
     userEmail: string | null;
     userName: string | null;
     userVerified: boolean;
+    setUserVerified: (verified: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -34,6 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUserEmail(userData.email);
             setUserName(userData.name);
         } catch (error) {
+            console.log("No user logged in", error);
             setUser(null);
         } finally {
             setIsLoading(false);
@@ -58,6 +60,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             await account.createEmailPasswordSession(email, password);
             const userData = await account.get();
             setUser(userData);
+            setUserEmail(userData.email);
+            setUserName(userData.name);
+            setUserVerified(userData.emailVerification);
             return null;
         } catch (error) {
             if (error instanceof Error) {
@@ -79,16 +84,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, signIn, signUp, signOut, isLoading, userEmail, userName, userVerified }}>
+        <AuthContext.Provider value={{ user, signIn, signUp, signOut, isLoading, userEmail, userName, userVerified ,setUserVerified }}>
             {children}
         </AuthContext.Provider>
     );
 }
 
 export function useAuth() {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error("useAuth must be used within an AuthProvider");
-    }
-    return context;
+  const context = useContext(AuthContext);
+  if (!context) {
+    console.warn("useAuth must be used within an AuthProvider");
+    return {
+      user: null,
+      signIn: async () => "Auth context not available",
+      signUp: async () => "Auth context not available",
+      signOut: async () => {},
+      isLoading: false,
+      userEmail: null,
+      userName: null,
+      userVerified: false,
+      setUserVerified: () => {},
+    };
+  }
+  return context;
 }

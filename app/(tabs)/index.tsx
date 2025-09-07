@@ -1,11 +1,21 @@
+import { icons } from "@/constants/icons";
 import { images } from "@/constants/images";
 import { useAuth } from "@/lib/authcontext";
-import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { JSX, useEffect, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import * as FileSystem from "expo-file-system";
+import * as IntentLauncher from "expo-intent-launcher";
+import * as Linking from "expo-linking";
+import { router } from "expo-router";
+import debounce from "lodash.debounce";
+import React, { JSX, useCallback, useEffect, useState } from "react";
+import { Button } from "react-native-paper";
 import {
+  ActivityIndicator,
   Alert,
   Image,
+  Modal,
+  Platform,
   ScrollView,
   Text,
   TextInput,
@@ -13,53 +23,66 @@ import {
   View,
 } from "react-native";
 
+
 interface Paper {
   id: number;
   subject: string;
+  previewImageUrl: string;
+  fileUrl: string;
+}
+
+interface PaperDetail extends Paper {
   description: string;
+  college: string;
+  course: string;
+  semester: number;
+  userEmail: string;
 }
 
 export default function Index(): JSX.Element {
-  const { userName, userVerified } = useAuth();
+  const { userName, userVerified, userEmail } = useAuth();
   const [selected, setSelected] = useState<number | null>(null);
   const [query, setQuery] = useState<string>("");
   const [papers, setPapers] = useState<Paper[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [selectedPaper, setSelectedPaper] = useState<PaperDetail | null>(null);
+  const [userNameState, setUserNameState] = useState<string | null>(userName);
 
-  useEffect(() => {
-    const loadAvatar = async (): Promise<void> => {
-      const savedAvatar = await AsyncStorage.getItem("avatar");
-      if (savedAvatar) setSelected(parseInt(savedAvatar, 10));
-    };
-    loadAvatar();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      const loadAvatar = async (): Promise<void> => {
+        setUserNameState(userName);
+        const savedAvatar = await AsyncStorage.getItem("avatar");
+        if (savedAvatar) setSelected(parseInt(savedAvatar, 10));
+      };
+      loadAvatar();
+      if (userVerified) {
+        fetchAllPapers();
+      }
+    }, [userVerified, userName])
+  );
 
-  useEffect(() => {
-    if (userVerified) {
-      fetchAllPapers();
-    }
-  }, [userVerified]);
 
   const fetchAllPapers = async (): Promise<void> => {
     setLoading(true);
     try {
-      const response = await fetch("https://dummyjson.com/posts");
+      const response = await fetch(
+        "https://au-exam-app-backend.onrender.com/api/papers"
+      );
       const data = await response.json();
-      setPapers(data.papers || []);
+      const sorted = [...data].sort((a, b) => b.id - a.id);
+      setPapers(sorted || []);
     } catch {
-      Alert.alert("Error", "Failed to load papers.");
+      console.error("Error", "Failed to load papers.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSearch = async (): Promise<void> => {
-    if (!userVerified) {
-      Alert.alert("Access Denied", "Please verify your email to search papers.");
-      return;
-    }
+  const searchPapers = async (text: string): Promise<void> => {
+    if (!userVerified) return;
 
-    if (!query.trim()) {
+    if (!text.trim()) {
       fetchAllPapers();
       return;
     }
@@ -67,14 +90,101 @@ export default function Index(): JSX.Element {
     setLoading(true);
     try {
       const response = await fetch(
-        `https://your-api.com/papers?subject=${encodeURIComponent(query)}`
+        `https://au-exam-app-backend.onrender.com/api/papers/search?subject=${encodeURIComponent(
+          text
+        )}`
       );
+
       const data = await response.json();
-      setPapers(data.papers || []);
+      const sorted = [...data].sort((a, b) => b.id - a.id);
+      setPapers(sorted);
     } catch {
-      Alert.alert("Error", "Search failed.");
+      console.error("Search failed.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const debouncedSearch = useCallback(debounce(searchPapers, 500), [
+    userVerified
+  ]);
+
+  useEffect(() => {
+    debouncedSearch(query);
+  }, [query, debouncedSearch]);
+
+  const fetchPaperById = async (id: number): Promise<void> => {
+    try {
+      const response = await fetch(
+        `https://au-exam-app-backend.onrender.com/api/papers/${id}`
+      );
+      const data = await response.json();
+      setSelectedPaper(data);
+    } catch {
+      Alert.alert("Error", "Failed to load paper details.");
+    }
+  };
+
+  const downloadAndOpenPDF = async (url: string) => {
+    try {
+      const fileName = url.split("/").pop() || "paper.pdf";
+      const fileUri = FileSystem.documentDirectory + fileName;
+      const { uri } = await FileSystem.downloadAsync(url, fileUri);
+
+      if (Platform.OS === "android") {
+        const contentUri = await FileSystem.getContentUriAsync(uri);
+        IntentLauncher.startActivityAsync("android.intent.action.VIEW", {
+          data: contentUri,
+          flags: 1,
+          type: "application/pdf",
+        });
+      } else {
+        const canOpen = await Linking.canOpenURL(uri);
+        if (canOpen) {
+          Linking.openURL(uri);
+        } else {
+          Alert.alert("Error", "Cannot open PDF on this device.");
+        }
+      }
+    } catch (error) {
+      console.error("Download error:", error);
+      Alert.alert("Download Failed", "Unable to open this paper.");
+    }
+  };
+  const confirmDelete = (id?: number) => {
+    if (!id) return;
+
+    Alert.alert(
+      "Confirm Delete",
+      "Are you sure you want to delete this paper?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => handleDelete(id),
+        },
+      ]
+    );
+  };
+
+  const handleDelete = async (id: number) => {
+    try {
+      const response = await fetch(
+        `https://au-exam-app-backend.onrender.com/api/papers/${id}`,
+        { method: "DELETE" }
+      );
+
+      if (response.ok) {
+        Alert.alert("Deleted", "Paper has been deleted.");
+        setSelectedPaper(null);
+        fetchAllPapers();
+      } else {
+        Alert.alert("Error", "Failed to delete paper.");
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      Alert.alert("Error", "Something went wrong.");
     }
   };
 
@@ -83,57 +193,150 @@ export default function Index(): JSX.Element {
       <View className="flex-row items-center justify-between mb-6">
         <View className="flex-row items-center">
           <Image
-            source={selected === 1 ? images.logo : images.logo2}
+            source={selected === 1 ? images.AvatarBoy : images.AvatarGirl}
             className="size-[32px] rounded-full"
           />
           <Text className="text-white text-base ml-2">
-            {userName || "Guest"}
+             {userNameState || "Student"}
           </Text>
         </View>
       </View>
 
-      <TextInput
-        placeholder="Search by subject"
-        value={query}
-        onChangeText={setQuery}
-        className="bg-white rounded-md px-4 py-2 mb-4"
-      />
-      <TouchableOpacity
-        onPress={handleSearch}
-        className="bg-indigo-600 rounded-md px-4 py-2 mb-4"
+      <View className="mb-2 flex flex-row items-center align-center border border-gray-600 justify-between rounded-xl">
+        <TextInput
+          placeholder="Search Subject"
+          value={query}
+          onChangeText={setQuery}
+          placeholderTextColor={"#ababab"}
+          className="bg-dark-100 w-[90%] text-white rounded-md px-4 py-2"
+        />
+        <Image source={icons.search} className="opacity-50 mr-4" />
+      </View>
+      <View
+        style={{ height: 24, justifyContent: "center", alignItems: "center" }}
       >
-        <Text className="text-white text-center font-semibold">
-          {loading ? "Loading..." : "Search"}
-        </Text>
-      </TouchableOpacity>
+        {loading && <ActivityIndicator size="small" color="#888" />}
+      </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
         <View className="flex-row flex-wrap justify-between">
-          {papers.length > 0 ? (
-            papers.map((paper) => (
-              <View
-                key={paper.id}
-                className="w-[48%] bg-[#1a1a2e] rounded-xl p-3 mb-4"
-              >
-                <View className="bg-[#2e2e3e] h-24 rounded-lg items-center justify-center">
-                  <Ionicons name="document-text-outline" size={36} color="#888" />
+          {papers.length > 0
+            ? papers.map((paper) => (
+                <View
+                  key={paper.id}
+                  className="w-[48%] bg-[#1a1a2e] rounded-xl p-3 mb-4"
+                >
+                  <TouchableOpacity onPress={() => fetchPaperById(paper.id)}>
+                    <Image
+                      source={{ uri: paper.previewImageUrl }}
+                      className="h-24 w-full rounded-lg mb-2"
+                      resizeMode="contain"
+                    />
+                    <Text className="text-white text-sm font-bold mb-2 text-center">
+                      {paper.subject}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => downloadAndOpenPDF(paper.fileUrl)}
+                    className="bg-green-600 py-1.5 rounded-md items-center"
+                  >
+                    <Text className="text-white font-semibold">
+                      Download Paper
+                    </Text>
+                  </TouchableOpacity>
                 </View>
-                <Text className="text-white text-sm mt-3 mb-2 font-bold">
-                  {paper.subject}
+              ))
+            : !loading &&
+              query && (
+                <Text className="text-white text-center mt-4">
+                  No papers found starting with &quot;{query}&quot;.
                 </Text>
-                <Text className="text-gray-300 text-xs mb-2">
-                  {paper.description}
-                </Text>
-                <TouchableOpacity className="bg-primary py-1.5 rounded-md items-center">
-                  <Text className="text-white font-semibold">View</Text>
+              )}
+              
+        </View>
+        {!userVerified && (
+          <>
+          <Text className="text-red-500 text-center mt-4">
+            Access denied. Please verify your account.
+          </Text>
+
+        <Button
+          className="w-1/2 mx-auto bg-indigo-600 mt-4"
+          onPress={() => router.replace("/Login")}
+          mode="contained"
+        >
+          Verify Now
+        </Button>
+          </>
+        )}
+      </ScrollView>
+
+      <Modal visible={!!selectedPaper} transparent animationType="slide">
+        <View className="flex-1 bg-black bg-opacity-80 justify-center px-6">
+          <View className="bg-[#1a1a2e] p-4 rounded-lg">
+            <Text className="text-white text-lg font-bold mb-2">
+              {selectedPaper?.subject}
+            </Text>
+            <Text className="text-gray-300 mb-1">
+              College: {selectedPaper?.college}
+            </Text>
+            <Text className="text-gray-300 mb-1">
+              Course: {selectedPaper?.course}
+            </Text>
+            <Text className="text-gray-300 mb-1">
+              Semester: {selectedPaper?.semester}
+            </Text>
+            <Text className="text-gray-300 mb-1">
+              Uploaded by: {selectedPaper?.userEmail}
+            </Text>
+            <Text className="text-gray-300 mb-3">
+              {selectedPaper?.description}
+            </Text>
+
+            {selectedPaper?.userEmail === userEmail && (
+              <View className="mb-1 flex-row justify-around">
+                <TouchableOpacity
+                  onPress={() => {
+                    setSelectedPaper(null);
+                    router.push({
+                      pathname: "/EditPaper",
+                      params: { paperId: selectedPaper.id.toString() },
+                    });
+                  }}
+                  className="bg-yellow-600 py-2 rounded-md mb-2"
+                >
+                  <Text className="text-white mx-2 text-center font-semibold">
+                    Edit
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() =>
+                    selectedPaper && confirmDelete(selectedPaper.id)
+                  }
+                  className="bg-red-600 py-2 rounded-md mb-2"
+                >
+                  <Text className="text-white mx-3 text-center font-semibold">
+                    Delete
+                  </Text>
                 </TouchableOpacity>
               </View>
-            ))
-          ) : (
-            <Text className="text-white text-center mt-4">No papers found.</Text>
-          )}
+            )}
+
+            <TouchableOpacity
+              onPress={() => setSelectedPaper(null)}
+              className="bg-red-600 py-2 rounded-md mt-2"
+            >
+              <Text className="text-white text-center font-semibold">
+                Close
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </ScrollView>
+      </Modal>
+      <Text className="text-center text-gray-400 absolute right-0 left-0 bottom-1 text-xs">
+        Best of luck for your exams!
+      </Text>
     </View>
   );
 }
