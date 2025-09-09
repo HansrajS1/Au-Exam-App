@@ -40,7 +40,8 @@ export default function AddPaper() {
 
   const handleFilePick = async () => {
     const result = await DocumentPicker.getDocumentAsync({
-      type: ["application/pdf", "application/msword"],
+      type: ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]
+      ,
       copyToCacheDirectory: true,
     });
 
