@@ -2,11 +2,11 @@
 
 A full-stack mobile application for uploading and managing academic papers, built for Alliance University. Users can submit papers, preview uploads, and manage content by subject, topic, and grade/branch.
 ---
-App download Link : [Au-Exam-App](https://hansrajs1.github.io/Au-Exam-App/) 
+App download Link : [Au-Exam-App](https://auexamapp.netlify.app/) 
 
 ##  Features
 
--  Upload academic papers (PDF, Word)
+-  Upload academic papers (PDF)
 -  Upload preview images
 -  Select university, subject, topic, and grade/branch
 -  Authentication via Appwrite
