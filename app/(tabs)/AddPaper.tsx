@@ -27,6 +27,7 @@ export default function AddPaper() {
   );
   const [previewImage, setPreviewImage] =
     useState<DocumentPicker.DocumentPickerResult | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (!userVerified) {
@@ -62,6 +63,8 @@ export default function AddPaper() {
   };
 
   const handleSubmit = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     if (
       !course ||
       !semester ||
@@ -129,12 +132,16 @@ export default function AddPaper() {
       setDescription("");
       setFile(null);
       setPreviewImage(null);
+      setIsSubmitting(true);
     } catch (error: any) {
       console.error("Upload error:", error.response?.data || error.message);
       Alert.alert(
         "Error",
         "Upload failed. Please check your input and try again."
       );
+    }
+    finally {
+      setIsSubmitting(false); // re-enable button
     }
   };
 
@@ -220,6 +227,7 @@ export default function AddPaper() {
 
         <TouchableOpacity
           onPress={handleSubmit}
+          disabled={isSubmitting}
           className="bg-green-600 w-[50%] mx-auto rounded-md px-4 py-2 mb-4"
         >
           <Text className="text-white text-center font-semibold">Submit</Text>
