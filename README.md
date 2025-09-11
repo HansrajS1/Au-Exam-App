@@ -1,8 +1,8 @@
 # AU Exam App
+<h3> A full-stack mobile application for uploading and managing academic papers, built for Alliance University Students. Users can submit acadmic apapers, preview uploads, and manage content by subject, topic, and branch.</h3>
 
-A full-stack mobile application for uploading and managing academic papers, built for Alliance University. Users can submit papers, preview uploads, and manage content by subject, topic, and grade/branch.
----
-App download Link : [Au-Exam-App](https://auexamapp.netlify.app/)
+## App download Link : [Au Exam App](https://auexamapp.netlify.app/)
+Backend Link : [Spring Boot ](https://github.com/HansrajS1/Au-Exam-App-backend)
 
 <h3>📸 App Screenshots</h3>
 <table>
@@ -25,9 +25,9 @@ App download Link : [Au-Exam-App](https://auexamapp.netlify.app/)
 
 ##  Features
 
--  Upload academic papers (PDF)
+-  Upload academic papers (PDF/WORD)
 -  Upload preview images
--  Select university, subject, topic, and grade/branch
+-  Select university, course, semester, subject.
 -  Authentication via Appwrite
 -  Context-based routing with Expo Router
 -  Native APK build with full offline support
@@ -141,9 +141,6 @@ assets/
 
 - **EAS build fails**  
   → Use `./gradlew assembleRelease` locally instead
-
-- **Stretched or blurry icon**  
-  → Use 1024×1024 PNG, square, no text, and define adaptive icon in `app.json`
 
 ---
 
