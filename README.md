@@ -2,7 +2,26 @@
 
 A full-stack mobile application for uploading and managing academic papers, built for Alliance University. Users can submit papers, preview uploads, and manage content by subject, topic, and grade/branch.
 ---
-App download Link : [Au-Exam-App](https://auexamapp.netlify.app/) 
+App download Link : [Au-Exam-App](https://auexamapp.netlify.app/)
+
+<h3>📸 App Screenshots</h3>
+<table>
+  <tr>
+    <td><img src="assets/Preview-Images/About-Page.jpg" width="220" /><br><p align="center"><strong>About Page</strong></p></td>
+    <td><img src="assets/Preview-Images/Creating-new-account.jpg" width="220" /><br><p align="center"><strong>Create Account</strong></p></td>
+    <td><img src="assets/Preview-Images/Sign-page.jpg" width="220" /><br><p align="center"><strong>Sign-In Page</strong></p></td>
+  </tr>
+  <tr>
+    <td><img src="assets/Preview-Images/Home-page.jpg" width="220" /><br><p align="center"><strong>Home Dashboard</strong></p></td>
+    <td><img src="assets/Preview-Images/Add-Paper.jpg" width="220" /><br><p align="center"><strong>Add Paper</strong></p></td>
+    <td><img src="assets/Preview-Images/Searching-paper.jpg" width="220" /><br><p align="center"><strong>Search Paper</strong></p></td>
+  </tr>
+  <tr>
+    <td><img src="assets/Preview-Images/Showing-Detail.jpg" width="220" /><br><p align="center"><strong>Paper Details</strong></p></td>
+    <td><img src="assets/Preview-Images/Editing-Paper.jpg" width="220" /><br><p align="center"><strong>Edit Paper</strong></p></td>
+    <td><img src="assets/Preview-Images/Profile-Page.jpg" width="220" /><br><p align="center"><strong>Profile Page</strong></p></td>
+  </tr>
+</table>
 
 ##  Features
 
