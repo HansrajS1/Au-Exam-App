@@ -41,6 +41,7 @@ Backend Link : [Spring Boot ](https://github.com/HansrajS1/Au-Exam-App-backend)
 |-------------|--------------------------------|
 | Frontend    | React Native + Expo Router     |
 | Backend     | [Spring Boot (REST API)](https://github.com/HansrajS1/Au-Exam-App-backend)      |
+| Database	  |PostgreSQL                      |
 | Auth        | Appwrite                       |
 | Styling     | NativeWind + Tailwind CSS      |
 | Build Tools | EAS Build / Android Studio / CLI |
