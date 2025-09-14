@@ -3,13 +3,13 @@ import { images } from "@/constants/images";
 import { useAuth } from "@/lib/authcontext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
-import * as FileSystem from "expo-file-system";
-import * as IntentLauncher from "expo-intent-launcher";
-import * as Linking from "expo-linking";
+import * as FileSystem from "expo-file-system/legacy";
 import { router } from "expo-router";
 import debounce from "lodash.debounce";
 import React, { JSX, useCallback, useEffect, useState } from "react";
 import { Button } from "react-native-paper";
+import * as IntentLauncher from "expo-intent-launcher";
+import * as Linking from "expo-linking";
 import {
   ActivityIndicator,
   Alert,
@@ -127,31 +127,32 @@ export default function Index(): JSX.Element {
   };
 
   const downloadAndOpenPDF = async (url: string) => {
-    try {
-      const fileName = url.split("/").pop() || "paper.pdf";
-      const fileUri = FileSystem.documentDirectory + fileName;
-      const { uri } = await FileSystem.downloadAsync(url, fileUri);
+  try {
+    const fileName = url.split("/").pop() || "paper.pdf";
+    const fileUri = FileSystem.documentDirectory + fileName;
 
-      if (Platform.OS === "android") {
-        const contentUri = await FileSystem.getContentUriAsync(uri);
-        IntentLauncher.startActivityAsync("android.intent.action.VIEW", {
-          data: contentUri,
-          flags: 1,
-          type: "application/pdf",
-        });
+    const { uri } = await FileSystem.downloadAsync(url, fileUri);
+
+    if (Platform.OS === "android") {
+      const contentUri = await FileSystem.getContentUriAsync(uri);
+      await IntentLauncher.startActivityAsync("android.intent.action.VIEW", {
+        data: contentUri,
+        flags: 1,
+        type: "application/pdf",
+      });
+    } else {
+      const canOpen = await Linking.canOpenURL(uri);
+      if (canOpen) {
+        Linking.openURL(uri);
       } else {
-        const canOpen = await Linking.canOpenURL(uri);
-        if (canOpen) {
-          Linking.openURL(uri);
-        } else {
-          Alert.alert("Error", "Cannot open PDF on this device.");
-        }
+        Alert.alert("Error", "Cannot open PDF on this device.");
       }
-    } catch (error) {
-      console.error("Download error:", error);
-      Alert.alert("Download Failed", "Unable to open this paper.");
     }
-  };
+  } catch (error) {
+    console.error("Download error:", error);
+    Alert.alert("Download Failed", "Unable to open this paper.");
+  }
+};
   const confirmDelete = (id?: number) => {
     if (!id) return;
 
