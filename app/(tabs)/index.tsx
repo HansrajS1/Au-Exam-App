@@ -47,6 +47,7 @@ export default function Index(): JSX.Element {
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedPaper, setSelectedPaper] = useState<PaperDetail | null>(null);
   const [userNameState, setUserNameState] = useState<string | null>(userName);
+  const BASE_URL = process.env.EXPO_PUBLIC_BASE_URL || "http://localhost:3000";
 
   useFocusEffect(
     useCallback(() => {
@@ -67,7 +68,7 @@ export default function Index(): JSX.Element {
     setLoading(true);
     try {
       const response = await fetch(
-        "https://au-exam-app-backend.onrender.com/api/papers"
+        `${BASE_URL}/api/papers`
       );
       const data = await response.json();
       const sorted = [...data].sort((a, b) => b.id - a.id);
@@ -90,7 +91,7 @@ export default function Index(): JSX.Element {
     setLoading(true);
     try {
       const response = await fetch(
-        `https://au-exam-app-backend.onrender.com/api/papers/search?subject=${encodeURIComponent(
+        `${BASE_URL}/api/papers/search?subject=${encodeURIComponent(
           text
         )}`
       );
@@ -116,7 +117,7 @@ export default function Index(): JSX.Element {
   const fetchPaperById = async (id: number): Promise<void> => {
     try {
       const response = await fetch(
-        `https://au-exam-app-backend.onrender.com/api/papers/${id}`
+        `${BASE_URL}/api/papers/${id}`
       );
       const data = await response.json();
       setSelectedPaper(data);
@@ -171,7 +172,7 @@ export default function Index(): JSX.Element {
   const handleDelete = async (id: number) => {
     try {
       const response = await fetch(
-        `https://au-exam-app-backend.onrender.com/api/papers/${id}`,
+        `${BASE_URL}/api/papers/${id}`,
         { method: "DELETE" }
       );
 
@@ -325,7 +326,7 @@ export default function Index(): JSX.Element {
 
             <TouchableOpacity
               onPress={() => setSelectedPaper(null)}
-              className="bg-red-600 py-2 rounded-md mt-2"
+              className="bg-gray-600 py-2 rounded-md mt-2"
             >
               <Text className="text-white text-center font-semibold">
                 Close

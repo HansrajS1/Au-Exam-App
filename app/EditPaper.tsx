@@ -18,11 +18,12 @@ export default function EditPaper() {
   const [paper, setPaper] = useState<any>(null);
   const [file, setFile] = useState<DocumentPicker.DocumentPickerResult | null>(null);
   const [previewImage, setPreviewImage] = useState<DocumentPicker.DocumentPickerResult | null>(null);
+  const BASE_URL = process.env.EXPO_PUBLIC_BASE_URL || "http://localhost:3000";
 
   useEffect(() => {
     const fetchPaper = async () => {
       try {
-        const response = await fetch(`https://au-exam-app-backend.onrender.com/api/papers/${paperId}`);
+        const response = await fetch(`${BASE_URL}/api/papers/${paperId}`);
         const data = await response.json();
         setPaper(data);
       } catch {
@@ -84,7 +85,7 @@ export default function EditPaper() {
 
     try {
       const response = await axios.put(
-        `https://au-exam-app-backend.onrender.com/api/papers/${paperId}`,
+        `${BASE_URL}/api/papers/${paperId}`,
         formData,
         {
           headers: {

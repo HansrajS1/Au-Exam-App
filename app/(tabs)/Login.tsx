@@ -3,7 +3,7 @@ import { account } from "@/lib/appwrite";
 import { useAuth } from "@/lib/authcontext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
-import { Image, Linking, Text, TouchableOpacity, View } from "react-native";
+import { Image, Linking, Share, Text, TouchableOpacity, View } from "react-native";
 import { Button } from "react-native-paper";
 
 const Login = () => {
@@ -81,6 +81,17 @@ const pollVerification = async () => {
     Linking.openURL("mailto:auexamapp@gmail.com");
   };
 
+  const handleShare = async () => {
+    try {
+      const result = await Share.share({
+        message:
+          "Check out the AU Exam App - built for Alliance University students to upload and manage their academic resources. Download it here: https://auexamapp.netlify.app",
+      });
+    } catch (error) {
+      console.error("Error sharing the app:", error);
+    }
+  }
+
   return (
     <View className="flex-1 bg-[#030014] justify-center items-center px-4">
       {!selected ? (
@@ -155,7 +166,7 @@ const pollVerification = async () => {
           <Text className="text-white font-semibold">⚙️  Contact Support </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          // onPress={handleShare}
+          onPress={handleShare}
           className="bg-black py-3 px-4 rounded-md "
         >
           <Text className="text-white text-center mt-4 font-semibold">

@@ -16,6 +16,7 @@ import { Button } from "react-native-paper";
 export default function AddPaper() {
   const { userVerified, userEmail } = useAuth();
   const router = useRouter();
+  const BASE_URL = process.env.EXPO_PUBLIC_BASE_URL || "http://localhost:3000";
 
   const [college, setCollege] = useState("Alliance University");
   const [course, setCourse] = useState("");
@@ -114,7 +115,7 @@ export default function AddPaper() {
 
     try {
       const response = await axios.post(
-        "https://au-exam-app-backend.onrender.com/api/papers/upload",
+        `${BASE_URL}/api/papers/upload`,
         formData,
         {
           headers: {
@@ -141,7 +142,7 @@ export default function AddPaper() {
       );
     }
     finally {
-      setIsSubmitting(false); // re-enable button
+      setIsSubmitting(false); 
     }
   };
 
