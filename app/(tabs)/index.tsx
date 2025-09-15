@@ -126,33 +126,48 @@ export default function Index(): JSX.Element {
     }
   };
 
-  const downloadAndOpenPDF = async (url: string) => {
+  const downloadAndOpenDocument = async (url: string) => {
   try {
-    const fileName = url.split("/").pop() || "paper.pdf";
+    const fileName = url.split("/").pop() || "document.docx";
     const fileUri = FileSystem.documentDirectory + fileName;
-
     const { uri } = await FileSystem.downloadAsync(url, fileUri);
+
+    const fileInfo = await FileSystem.getInfoAsync(uri);
+    if (!fileInfo.exists || fileInfo.size === 0) {
+      Alert.alert("File Error", "Downloaded file is empty or missing.");
+      return;
+    }
+
+    const extension = fileName.split(".").pop()?.toLowerCase();
+    let mimeType = "application/octet-stream";
+
+    if (extension === "docx") {
+      mimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    } else if (extension === "doc") {
+      mimeType = "application/msword";
+    }
 
     if (Platform.OS === "android") {
       const contentUri = await FileSystem.getContentUriAsync(uri);
       await IntentLauncher.startActivityAsync("android.intent.action.VIEW", {
         data: contentUri,
         flags: 1,
-        type: "application/pdf",
+        type: mimeType,
       });
     } else {
       const canOpen = await Linking.canOpenURL(uri);
       if (canOpen) {
         Linking.openURL(uri);
       } else {
-        Alert.alert("Error", "Cannot open PDF on this device.");
+        Alert.alert("Error", "Cannot open document on this device.");
       }
     }
   } catch (error) {
     console.error("Download error:", error);
-    Alert.alert("Download Failed", "Unable to open this paper.");
+    Alert.alert("Download Failed", "Unable to open this document.");
   }
 };
+
   const confirmDelete = (id?: number) => {
     if (!id) return;
 
@@ -240,7 +255,7 @@ export default function Index(): JSX.Element {
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    onPress={() => downloadAndOpenPDF(paper.fileUrl)}
+                    onPress={() => downloadAndOpenDocument(paper.fileUrl)}
                     className="bg-green-600 py-1.5 rounded-md items-center"
                   >
                     <Text className="text-white font-semibold">
@@ -306,9 +321,9 @@ export default function Index(): JSX.Element {
                       params: { paperId: selectedPaper.id.toString() },
                     });
                   }}
-                  className="bg-yellow-600 py-2 rounded-md mb-2"
+                  className="bg-yellow-600 py-2 rounded-md mb-2 w-[30%]"
                 >
-                  <Text className="text-white mx-2 text-center font-semibold">
+                  <Text className="text-white mx-2 text-center  font-semibold">
                     Edit
                   </Text>
                 </TouchableOpacity>
@@ -316,7 +331,7 @@ export default function Index(): JSX.Element {
                   onPress={() =>
                     selectedPaper && confirmDelete(selectedPaper.id)
                   }
-                  className="bg-red-600 py-2 rounded-md mb-2"
+                  className="bg-red-600 py-2 rounded-md w-[30%] mb-2"
                 >
                   <Text className="text-white mx-3 text-center font-semibold">
                     Delete
@@ -327,7 +342,7 @@ export default function Index(): JSX.Element {
 
             <TouchableOpacity
               onPress={() => setSelectedPaper(null)}
-              className="bg-gray-600 py-2 rounded-md mt-2"
+              className="bg-blue-600 py-2 rounded-md mt-2"
             >
               <Text className="text-white text-center font-semibold">
                 Close
