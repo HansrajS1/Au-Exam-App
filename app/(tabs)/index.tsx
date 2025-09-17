@@ -22,7 +22,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
+import { blue100 } from "react-native-paper/lib/typescript/styles/themes/v2/colors";
 
 interface Paper {
   id: number;
@@ -63,13 +63,10 @@ export default function Index(): JSX.Element {
     }, [userVerified, userName])
   );
 
-
   const fetchAllPapers = async (): Promise<void> => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `${BASE_URL}/api/papers`
-      );
+      const response = await fetch(`${BASE_URL}/api/papers`);
       const data = await response.json();
       const sorted = [...data].sort((a, b) => b.id - a.id);
       setPapers(sorted || []);
@@ -91,9 +88,7 @@ export default function Index(): JSX.Element {
     setLoading(true);
     try {
       const response = await fetch(
-        `${BASE_URL}/api/papers/search?subject=${encodeURIComponent(
-          text
-        )}`
+        `${BASE_URL}/api/papers/search?subject=${encodeURIComponent(text)}`
       );
 
       const data = await response.json();
@@ -107,7 +102,7 @@ export default function Index(): JSX.Element {
   };
 
   const debouncedSearch = useCallback(debounce(searchPapers, 500), [
-    userVerified
+    userVerified,
   ]);
 
   useEffect(() => {
@@ -116,9 +111,7 @@ export default function Index(): JSX.Element {
 
   const fetchPaperById = async (id: number): Promise<void> => {
     try {
-      const response = await fetch(
-        `${BASE_URL}/api/papers/${id}`
-      );
+      const response = await fetch(`${BASE_URL}/api/papers/${id}`);
       const data = await response.json();
       setSelectedPaper(data);
     } catch {
@@ -127,46 +120,66 @@ export default function Index(): JSX.Element {
   };
 
   const downloadAndOpenDocument = async (url: string) => {
-  try {
-    const fileName = url.split("/").pop() || "document.docx";
-    const fileUri = FileSystem.documentDirectory + fileName;
-    const { uri } = await FileSystem.downloadAsync(url, fileUri);
+    try {
+      const fileName = url.split("/").pop() || "document.docx";
+      const fileUri = FileSystem.documentDirectory + fileName;
 
-    const fileInfo = await FileSystem.getInfoAsync(uri);
-    if (!fileInfo.exists || fileInfo.size === 0) {
-      Alert.alert("File Error", "Downloaded file is empty or missing.");
-      return;
-    }
+      const { uri } = await FileSystem.downloadAsync(url, fileUri);
+      const fileInfo = await FileSystem.getInfoAsync(uri);
 
-    const extension = fileName.split(".").pop()?.toLowerCase();
-    let mimeType = "application/octet-stream";
-
-    if (extension === "docx") {
-      mimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-    } else if (extension === "doc") {
-      mimeType = "application/msword";
-    }
-
-    if (Platform.OS === "android") {
-      const contentUri = await FileSystem.getContentUriAsync(uri);
-      await IntentLauncher.startActivityAsync("android.intent.action.VIEW", {
-        data: contentUri,
-        flags: 1,
-        type: mimeType,
-      });
-    } else {
-      const canOpen = await Linking.canOpenURL(uri);
-      if (canOpen) {
-        Linking.openURL(uri);
-      } else {
-        Alert.alert("Error", "Cannot open document on this device.");
+      if (!fileInfo.exists || fileInfo.size === 0) {
+        Alert.alert("File Error", "Downloaded file is empty or missing.");
+        return;
       }
+
+      const extension = fileName.split(".").pop()?.toLowerCase();
+      let mimeType = "application/octet-stream";
+
+      if (extension === "docx") {
+        mimeType =
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+      } else if (extension === "doc") {
+        mimeType = "application/msword";
+      } else if (extension === "pdf") {
+        mimeType = "application/pdf";
+      } else {
+        Alert.alert(
+          "Unsupported File",
+          `Cannot open .${extension} files on this device.`
+        );
+        return;
+      }
+
+      if (Platform.OS === "android") {
+        const contentUri = await FileSystem.getContentUriAsync(uri);
+        try {
+          await IntentLauncher.startActivityAsync(
+            "android.intent.action.VIEW",
+            {
+              data: contentUri,
+              flags: 1,
+              type: mimeType,
+            }
+          );
+        } catch (error) {
+          Alert.alert(
+            "No Viewer Found",
+            `No app available to open .${extension} files.`
+          );
+        }
+      } else {
+        const canOpen = await Linking.canOpenURL(uri);
+        if (canOpen) {
+          Linking.openURL(uri);
+        } else {
+          Alert.alert("Error", "Cannot open document on this device.");
+        }
+      }
+    } catch (error) {
+      console.error("Download error:", error);
+      Alert.alert("Download Failed", "Unable to open this document.");
     }
-  } catch (error) {
-    console.error("Download error:", error);
-    Alert.alert("Download Failed", "Unable to open this document.");
-  }
-};
+  };
 
   const confirmDelete = (id?: number) => {
     if (!id) return;
@@ -187,10 +200,9 @@ export default function Index(): JSX.Element {
 
   const handleDelete = async (id: number) => {
     try {
-      const response = await fetch(
-        `${BASE_URL}/api/papers/${id}`,
-        { method: "DELETE" }
-      );
+      const response = await fetch(`${BASE_URL}/api/papers/${id}`, {
+        method: "DELETE",
+      });
 
       if (response.ok) {
         Alert.alert("Deleted", "Paper has been deleted.");
@@ -214,7 +226,7 @@ export default function Index(): JSX.Element {
             className="size-[32px] rounded-full"
           />
           <Text className="text-white text-base ml-2">
-             {userNameState || "Student"}
+            {userNameState || "Student"}
           </Text>
         </View>
       </View>
@@ -234,60 +246,60 @@ export default function Index(): JSX.Element {
       >
         {loading && <ActivityIndicator size="small" color="#888" />}
       </View>
-
-      <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
-        <View className="flex-row flex-wrap justify-between">
-          {papers.length > 0
-            ? papers.map((paper) => (
-                <View
-                  key={paper.id}
-                  className="w-[48%] bg-[#1a1a2e] rounded-xl p-3 mb-4"
-                >
-                  <TouchableOpacity onPress={() => fetchPaperById(paper.id)}>
-                    <Image
-                      source={{ uri: paper.previewImageUrl }}
-                      className="h-24 w-full rounded-lg mb-2"
-                      resizeMode="contain"
-                    />
-                    <Text className="text-white text-sm font-bold mb-2 text-center">
-                      {paper.subject}
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    onPress={() => downloadAndOpenDocument(paper.fileUrl)}
-                    className="bg-green-600 py-1.5 rounded-md items-center"
+      <View className="h-[77%]">
+        <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
+          <View className="flex-row flex-wrap justify-between">
+            {papers.length > 0
+              ? papers.map((paper) => (
+                  <View
+                    key={paper.id}
+                    className="w-[48%] bg-[#1a1a2e] rounded-xl p-3 mb-4"
                   >
-                    <Text className="text-white font-semibold">
-                      Download Paper
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              ))
-            : !loading &&
-              query && (
-                <Text className="text-white text-center mt-4">
-                  No papers found starting with &quot;{query}&quot;.
-                </Text>
-              )}
-              
-        </View>
-        {!userVerified && (
-          <>
-          <Text className="text-red-500 text-center mt-4">
-            Access denied. Please verify your account.
-          </Text>
+                    <TouchableOpacity onPress={() => fetchPaperById(paper.id)}>
+                      <Image
+                        source={{ uri: paper.previewImageUrl }}
+                        className="h-24 w-full rounded-lg mb-2"
+                        resizeMode="contain"
+                      />
+                      <Text className="text-white text-sm font-bold mb-2 text-center">
+                        {paper.subject}
+                      </Text>
+                    </TouchableOpacity>
 
-        <Button
-          className="w-1/2 mx-auto bg-indigo-600 mt-4"
-          onPress={() => router.replace("/Login")}
-          mode="contained"
-        >
-          Verify Now
-        </Button>
-          </>
-        )}
-      </ScrollView>
+                    <TouchableOpacity
+                      onPress={() => downloadAndOpenDocument(paper.fileUrl)}
+                      className="bg-green-600 py-1.5 rounded-md items-center"
+                    >
+                      <Text className="text-white font-semibold">
+                        Download Paper
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                ))
+              : !loading &&
+                query && (
+                  <Text className="text-white text-center mt-4">
+                    No papers found starting with &quot;{query}&quot;.
+                  </Text>
+                )}
+          </View>
+          {!userVerified && (
+            <>
+              <Text className="text-red-500 text-center mt-4">
+                Access denied. Please verify your account.
+              </Text>
+
+              <Button
+                className="w-1/2 mx-auto bg-indigo-600 mt-4"
+                onPress={() => router.replace("/Login")}
+                mode="contained"
+              >
+                Verify Now
+              </Button>
+            </>
+          )}
+        </ScrollView>
+      </View>
 
       <Modal visible={!!selectedPaper} transparent animationType="slide">
         <View className="flex-1 bg-black bg-opacity-80 justify-center px-6">
