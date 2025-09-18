@@ -111,21 +111,6 @@ APPWRITE_PROJECT_ID=your_project_id
 
 Use `react-native-dotenv` to load them.
 
----
-
-##  Folder Structure
-
-```
-app/
- ├── (tabs)/         # Tab navigation screens
- ├── auth/           # Login & signup screens
- ├── upload/         # Add paper screen
- ├── _layout.tsx     # Root layout with AuthProvider
-lib/
- └── authcontext.tsx # Appwrite auth logic
-assets/
- └── icon.png        # App icon
-```
 
 ---
 
