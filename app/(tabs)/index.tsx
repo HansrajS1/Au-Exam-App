@@ -22,7 +22,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { blue100 } from "react-native-paper/lib/typescript/styles/themes/v2/colors";
+
 
 interface Paper {
   id: number;
