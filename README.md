@@ -4,6 +4,10 @@
 ## App download Link : [Au Exam App](https://auexamapp.netlify.app/)
 Backend Link : [Spring Boot ](https://github.com/HansrajS1/Au-Exam-App-backend)
 
+Web live Link : [Au Exam Web live](https://auexamweb.netlify.app)
+
+Au Exam Web repo : [Au Exam Web repo](https://github.com/HansrajS1/Au-Exam-Web)
+
 <h3>📸 App Screenshots</h3>
 <table>
   <tr>
