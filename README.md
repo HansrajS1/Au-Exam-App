@@ -2,7 +2,7 @@
 <h3> A full-stack mobile application for uploading and managing academic papers, built for Alliance University Students. Users can submit acadmic apapers, preview uploads, and manage content by subject, topic, and branch.</h3>
 
 ## App download Link : [Au Exam App](https://auexamapp.netlify.app/)
-Backend Link : [Spring Boot ](https://github.com/HansrajS1/Au-Exam-App-backend)
+Backend Link : [Spring Boot](https://github.com/HansrajS1/Au-Exam-App-backend)   or    [Express JS](https://github.com/HansrajS1/Au-Exam-backend)
 
 Web live Link : [Au Exam Web live](https://auexamweb.netlify.app)
 
