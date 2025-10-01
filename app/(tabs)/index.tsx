@@ -64,18 +64,28 @@ export default function Index(): JSX.Element {
   );
 
   const fetchAllPapers = async (): Promise<void> => {
-    setLoading(true);
-    try {
-      const response = await fetch(`${BASE_URL}/api/papers`);
-      const data = await response.json();
-      const sorted = [...data].sort((a, b) => b.id - a.id);
-      setPapers(sorted || []);
-    } catch {
-      console.error("Error", "Failed to load papers.");
-    } finally {
-      setLoading(false);
+  setLoading(true);
+  try {
+    const response = await fetch(`${BASE_URL}/api/papers`, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
     }
-  };
+
+    const data = await response.json();
+    const sorted = Array.isArray(data) ? [...data].sort((a, b) => b.id - a.id) : [];
+    setPapers(sorted);
+  } catch (err: any) {
+    console.error("Failed to load papers:", err.message || err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const searchPapers = async (text: string): Promise<void> => {
     if (!userVerified) return;

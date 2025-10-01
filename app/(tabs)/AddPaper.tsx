@@ -78,6 +78,7 @@ export default function AddPaper() {
         "Missing Fields",
         "Please fill out all fields and upload both files."
       );
+      setIsSubmitting(false);
       return;
     }
 
@@ -143,6 +144,7 @@ export default function AddPaper() {
     }
     finally {
       setIsSubmitting(false); 
+      console.log("Submission process completed.");
     }
   };
 
