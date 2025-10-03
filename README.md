@@ -8,6 +8,9 @@ Web live Link : [Au Exam Web live](https://auexamweb.netlify.app)
 
 Au Exam Web repo : [Au Exam Web repo](https://github.com/HansrajS1/Au-Exam-Web)
 
+## CI/CD (Git Actions)
+![Build APK](https://github.com/HansrajS1/Au-Exam-App/actions/workflows/Build_APK.yml/badge.svg)
+---
 <h3>📸 App Screenshots</h3>
 <table>
   <tr>
