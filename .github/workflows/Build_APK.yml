@@ -10,11 +10,10 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-env:
-  EXPO_PUBLIC_APPWRITE_PROJECT_ID: ${{ secrets.APPWRITE_PROJECT_ID }}
-  EXPO_PUBLIC_APPWRITE_PROJECT_NAME: ${{ secrets.APPWRITE_PROJECT_NAME }}
-  EXPO_PUBLIC_APPWRITE_ENDPOINT: ${{ secrets.APPWRITE_ENDPOINT }}
-  EXPO_PUBLIC_BASE_URL: ${{ secrets.BASE_URL }}
+      EXPO_PUBLIC_APPWRITE_PROJECT_ID: ${{ secrets.APPWRITE_PROJECT_ID }}
+      EXPO_PUBLIC_APPWRITE_PROJECT_NAME: ${{ secrets.APPWRITE_PROJECT_NAME }}
+      EXPO_PUBLIC_APPWRITE_ENDPOINT: ${{ secrets.APPWRITE_ENDPOINT }}
+      EXPO_PUBLIC_BASE_URL: ${{ secrets.BASE_URL }}
 
     steps:
       - name: Checkout code
