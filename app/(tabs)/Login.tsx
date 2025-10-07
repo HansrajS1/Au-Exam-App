@@ -13,6 +13,7 @@ const Login = () => {
     : "Guest";
   const userEmailDisplay = userEmail ? userEmail : "Guest@example.com";
   const [selected, setSelected] = useState<number | null>(null);
+  const [verifiedmessage, setVerifiedMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const loadAvatar = async () => {
@@ -35,12 +36,12 @@ const Login = () => {
 
   const verifyAccount = async () => {
     try {
-      alert("Check your email for the verification link!");
-      await account.createVerification("https://auexamverifyemail.netlify.app");
+      setVerifiedMessage("Check your email for the verification link!");
+      await account.createVerification("https://auexamapp.tech/verify-email");
       pollVerification();
     } catch (error) {
       console.error("Error verifying account:", error);
-      alert("Error verifying account");
+      setVerifiedMessage("Error verifying account");
     }
   };
 
@@ -50,6 +51,12 @@ const pollVerification = async () => {
     { duration: 10000, interval: 2000 },
     { duration: 10000, interval: 3000 },
     { duration: 10000, interval: 5000 }, 
+    { duration: 10000, interval: 5000 },
+    { duration: 10000, interval: 5000 },
+    { duration: 10000, interval: 5000 },
+    { duration: 10000, interval: 5000 },
+    { duration: 10000, interval: 5000 },
+    { duration: 10000, interval: 5000 }
   ];
 
   let verified = false;
@@ -60,7 +67,7 @@ const pollVerification = async () => {
       try {
         const user = await account.get();
         if (user.emailVerification) {
-          alert("Your account is now verified!");
+          setVerifiedMessage("Your account is now verified!");
           setUserVerified(true);
           verified = true;
           return;
@@ -73,7 +80,7 @@ const pollVerification = async () => {
   }
 
   if (!verified) {
-    alert(" Verification not detected. Please refresh or try again.");
+    setVerifiedMessage(" Verification not detected. Please refresh or try again.");
   }
 };
 
@@ -85,7 +92,7 @@ const pollVerification = async () => {
     try {
       const result = await Share.share({
         message:
-          "Check out the AU Exam App - built for Alliance University students to upload and manage their academic resources. Download it here: https://auexamapp.netlify.app",
+          "Check out the AU Exam App - built for Alliance University students to upload and manage their academic resources. Download it here: https://auexamapp.tech/app-download",
       });
     } catch (error) {
       console.error("Error sharing the app:", error);
@@ -148,7 +155,17 @@ const pollVerification = async () => {
           </Button>
         )}
       </View>
-
+      {verifiedmessage && (
+        userVerified ? (
+          <Text className="text-green-500 text-center mb-4 px-2">
+            {verifiedmessage}
+          </Text>
+        ) : (
+          <Text className="text-red-500 text-center mb-4 px-2">
+            {verifiedmessage}
+          </Text>
+        )
+      )}
       <View className="items-center">
         <Button
           className="w-1/2 mt-2 mx-auto bg-indigo-600"
