@@ -1,13 +1,16 @@
 # AU Exam App
 <h3> A full-stack mobile application for uploading and managing academic papers, built for Alliance University Students. Users can submit acadmic apapers, preview uploads, and manage content by subject, topic, and branch.</h3>
 
-## App download Link : [Au Exam App](https://auexamapp.netlify.app/)
+## App download Link : [Au Exam App](https://auexamapp.tech/app-download)
 Backend Link : [Spring Boot](https://github.com/HansrajS1/Au-Exam-App-backend)   or    [Express JS](https://github.com/HansrajS1/Au-Exam-backend)
 
-Web live Link : [Au Exam Web live](https://auexamweb.netlify.app)
+Web live Link : [Au Exam Web live](https://auexamapp.tech/)
 
 Au Exam Web repo : [Au Exam Web repo](https://github.com/HansrajS1/Au-Exam-Web)
 
+## CI/CD (Git Actions)
+[![Build APK](https://github.com/HansrajS1/Au-Exam-App/actions/workflows/Build_APK.yml/badge.svg)](https://github.com/HansrajS1/Au-Exam-App/actions/workflows/Build_APK.yml)
+---
 <h3>📸 App Screenshots</h3>
 <table>
   <tr>
