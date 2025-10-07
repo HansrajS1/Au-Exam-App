@@ -156,7 +156,7 @@ export default function About() {
           </View>
           <TouchableOpacity
             className="bg-green-500 px-6 py-2 rounded-full mb-6"
-            onPress={() => Linking.openURL("")}
+            onPress={() => Linking.openURL("https://auexamapp.tech/app-download")}
           >
             <Text className="text-white font-semibold text-base">
               Android Download is Live!
