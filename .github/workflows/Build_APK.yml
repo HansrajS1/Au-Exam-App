@@ -12,6 +12,9 @@ jobs:
   build-apk:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+
     env:
       EXPO_PUBLIC_APPWRITE_PROJECT_ID: ${{ secrets.APPWRITE_PROJECT_ID }}
       EXPO_PUBLIC_APPWRITE_PROJECT_NAME: ${{ secrets.APPWRITE_PROJECT_NAME }}
