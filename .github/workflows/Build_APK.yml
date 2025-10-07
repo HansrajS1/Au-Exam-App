@@ -20,6 +20,7 @@ jobs:
       EXPO_PUBLIC_APPWRITE_PROJECT_NAME: ${{ secrets.APPWRITE_PROJECT_NAME }}
       EXPO_PUBLIC_APPWRITE_ENDPOINT: ${{ secrets.APPWRITE_ENDPOINT }}
       EXPO_PUBLIC_BASE_URL: ${{ secrets.BASE_URL }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Checkout code
@@ -62,8 +63,9 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ github.run_number }}
-          name: Release v${{ github.run_number }}
+          tag_name: v1.${{ github.run_number }}
+          name: Release v1.${{ github.run_number }}
+          overwrite: true
           files: android/app/build/outputs/apk/release/app-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
