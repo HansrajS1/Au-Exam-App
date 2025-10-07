@@ -8,7 +8,14 @@ node_modules/
 dist/
 web-build/
 expo-env.d.ts
-android/
+
+android/.gradle/
+android/.idea/
+android/app/build/
+android/build/
+android/.cxx/
+*.iml
+
 
 # Native
 .kotlin/
