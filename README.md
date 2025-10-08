@@ -9,7 +9,7 @@ Web live Link : [Au Exam Web live](https://auexamapp.tech/)
 Au Exam Web repo : [Au Exam Web repo](https://github.com/HansrajS1/Au-Exam-Web)
 
 ## CI/CD (Git Actions)
-[![Build APK](https://github.com/HansrajS1/Au-Exam-App/actions/workflows/Build_APK.yml/badge.svg)](https://github.com/HansrajS1/Au-Exam-App/actions/workflows/Build_APK.yml)
+[![Build APK](https://github.com/HansrajS1/Au-Exam-App/actions/workflows/release-apk-v1.yml/badge.svg)](https://github.com/HansrajS1/Au-Exam-App/actions/workflows/release-apk-v1.yml)
 ---
 <h3>📸 App Screenshots</h3>
 <table>
