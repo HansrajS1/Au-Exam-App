@@ -9,7 +9,14 @@ import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
 import { Button } from "react-native-paper";
 import debounce from "lodash.debounce";
-import React, { JSX, memo, useCallback, useState, useEffect } from "react";
+import React, {
+  JSX,
+  memo,
+  useCallback,
+  useState,
+  useEffect,
+  useRef,
+} from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -69,7 +76,7 @@ const PaperCard = memo(
         onPress={() => onDownload(paper.fileUrl)}
         className="bg-green-600 py-1.5 rounded-md items-center"
       >
-        <Text className="text-white font-semibold">Download</Text>
+        <Text className="text-white font-semibold">View</Text>
       </TouchableOpacity>
     </View>
   )
@@ -89,88 +96,129 @@ export default function Index(): JSX.Element {
   const [userNameState, setUserNameState] = useState<string | null>(userName);
   const BASE_URL = process.env.EXPO_PUBLIC_BASE_URL || "http://localhost:3000";
   const router = useRouter();
+  const searchCancel = useRef(false);
 
-  const loadInitialData = useCallback(async () => {
+  useEffect(() => {
+    const loadAvatar = async (): Promise<void> => {
+      setUserNameState(userName);
+      const savedAvatar = await AsyncStorage.getItem("avatar");
+      if (savedAvatar) setSelected(parseInt(savedAvatar, 10));
+    };
+    loadAvatar();
+  }, [userName]);
+
+  const fetchAllPapers = useCallback(async () => {
     setLoading(true);
-    setPage(1);
-    try {
-      const cachedPapers = await AsyncStorage.getItem("allPapers");
-      if (cachedPapers) {
-        const papers = JSON.parse(cachedPapers);
-        setAllPapers(papers);
-        setDisplayedPapers(papers.slice(0, PAGE_SIZE));
-      } else {
-        await fetchAllPapers();
-      }
-    } catch (e) {
-      console.error("Failed to load initial data", e);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      const setup = async () => {
-        setUserNameState(userName);
-        const savedAvatar = await AsyncStorage.getItem("avatar");
-        if (savedAvatar) setSelected(parseInt(savedAvatar, 10));
-
-        if (userVerified) {
-          loadInitialData();
-          const intervalId = setInterval(fetchAllPapers, 90000);
-          return () => clearInterval(intervalId);
-        }
-      };
-      setup();
-    }, [userVerified, userName, loadInitialData])
-  );
-
-  const fetchAllPapers = async (): Promise<void> => {
     try {
       const response = await fetch(`${BASE_URL}/api/papers`);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
-      const sorted = Array.isArray(data)
-        ? [...data].sort((a, b) => b.id - a.id)
+      const sorted: Paper[] = Array.isArray(data)
+        ? data.sort((a, b) => b.id - a.id)
         : [];
       setAllPapers(sorted);
-      setDisplayedPapers(sorted.slice(0, page * PAGE_SIZE));
+      setDisplayedPapers(sorted.slice(0, PAGE_SIZE));
+      setPage(1);
       await AsyncStorage.setItem("allPapers", JSON.stringify(sorted));
     } catch (err) {
-      console.error("Failed to fetch latest papers:", err);
-    }
-  };
-
-  const searchPapers = async (text: string): Promise<void> => {
-    if (!userVerified) return;
-    if (!text.trim()) {
-      setDisplayedPapers(allPapers.slice(0, PAGE_SIZE));
-      return;
-    }
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `${BASE_URL}/api/papers/search?subject=${encodeURIComponent(text)}`
-      );
-      const data = await response.json();
-      const sorted = [...data].sort((a, b) => b.id - a.id);
-      setDisplayedPapers(sorted);
-    } catch (e) {
-      console.error("Search failed.", e);
+      setAllPapers([]);
+      setDisplayedPapers([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [BASE_URL]);
 
-  const debouncedSearch = useCallback(debounce(searchPapers, 500), [
-    userVerified,
-    allPapers,
+  const loadInitialData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const cachedPapers = await AsyncStorage.getItem("allPapers");
+      if (cachedPapers) {
+        const papers: Paper[] = JSON.parse(cachedPapers);
+        setAllPapers(papers);
+        setDisplayedPapers(papers.slice(0, PAGE_SIZE));
+        setPage(1);
+      } else {
+        await fetchAllPapers();
+      }
+    } catch {
+      setAllPapers([]);
+      setDisplayedPapers([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchAllPapers]);
+
+  useFocusEffect(
+    useCallback(() => {
+      let intervalId: number | undefined;
+      (async () => {
+        setUserNameState(userName);
+        const savedAvatar = await AsyncStorage.getItem("avatar");
+        if (savedAvatar) setSelected(parseInt(savedAvatar, 10));
+        if (userVerified) {
+          await loadInitialData();
+          intervalId = setInterval(fetchAllPapers, 90000);
+        }
+      })();
+      return () => {
+        if (intervalId !== undefined) clearInterval(intervalId);
+      };
+    }, [userVerified, userName, loadInitialData, fetchAllPapers])
+  );
+
+  const searchPapers = useCallback(
+    async (text: string) => {
+      searchCancel.current = false;
+      if (!userVerified) return;
+      setLoading(true);
+      if (!text.trim()) {
+        setDisplayedPapers(allPapers.slice(0, PAGE_SIZE));
+        setPage(1);
+        setLoading(false);
+        return;
+      }
+      try {
+        const response = await fetch(
+          `${BASE_URL}/api/papers/search?subject=${encodeURIComponent(text)}`
+        );
+        const data = await response.json();
+        const sorted: Paper[] = Array.isArray(data)
+          ? data.sort((a, b) => b.id - a.id)
+          : [];
+        if (!searchCancel.current) {
+          setDisplayedPapers(sorted);
+          setPage(1);
+        }
+      } catch {
+        if (!searchCancel.current) {
+          setDisplayedPapers([]);
+          setPage(1);
+        }
+      } finally {
+        if (!searchCancel.current) setLoading(false);
+      }
+    },
+    [userVerified, BASE_URL, allPapers]
+  );
+
+  const debouncedSearch = useCallback(debounce(searchPapers, 400), [
+    searchPapers,
   ]);
+  useEffect(() => {
+    searchCancel.current = false;
+    debouncedSearch(query);
+    return () => {
+      searchCancel.current = true;
+      debouncedSearch.cancel();
+    };
+  }, [query, debouncedSearch]);
 
   useEffect(() => {
-    debouncedSearch(query);
-  }, [query, debouncedSearch]);
+    if (userVerified && !query.trim()) {
+      loadInitialData();
+    }
+    // eslint-disable-next-line
+  }, [userVerified]);
 
   const fetchPaperById = async (id: number): Promise<void> => {
     try {
@@ -260,35 +308,28 @@ export default function Index(): JSX.Element {
   };
 
   const handleDelete = async (id: number) => {
-    const originalPapers = [...allPapers];
-    const updatedPapers = originalPapers.filter((p) => p.id !== id);
-
+    const updatedPapers = allPapers.filter((p) => p.id !== id);
     setAllPapers(updatedPapers);
-    setDisplayedPapers((papers) => papers.filter((p) => p.id !== id));
+    setDisplayedPapers(updatedPapers.slice(0, PAGE_SIZE));
     await AsyncStorage.setItem("allPapers", JSON.stringify(updatedPapers));
     setSelectedPaper(null);
-
     try {
       const response = await fetch(`${BASE_URL}/api/papers/${id}`, {
         method: "DELETE",
       });
       if (!response.ok) throw new Error("Server delete failed");
-    } catch (error) {
-      setAllPapers(originalPapers);
-      setDisplayedPapers(originalPapers.slice(0, page * PAGE_SIZE));
-      await AsyncStorage.setItem("allPapers", JSON.stringify(originalPapers));
+    } catch {
       Alert.alert("Error", "Failed to delete paper. Please try again.");
+      await loadInitialData();
     }
   };
 
   const loadMorePapers = () => {
-    if (loading || displayedPapers.length >= allPapers.length) return;
-    setPage((prevPage) => {
-      const nextPage = prevPage + 1;
-      const newPapers = allPapers.slice(0, nextPage * PAGE_SIZE);
-      setDisplayedPapers(newPapers);
-      return nextPage;
-    });
+    if (loading || !!query.trim() || displayedPapers.length >= allPapers.length)
+      return;
+    const nextPage = page + 1;
+    setDisplayedPapers(allPapers.slice(0, nextPage * PAGE_SIZE));
+    setPage(nextPage);
   };
 
   return (
@@ -307,7 +348,6 @@ export default function Index(): JSX.Element {
           </Text>
         </TouchableOpacity>
       </View>
-
       <View className="mb-2 flex-row items-center border border-gray-600 rounded-xl bg-[#1a1a2e]">
         <TextInput
           placeholder="Search Subject"
@@ -318,17 +358,14 @@ export default function Index(): JSX.Element {
         />
         <Image source={icons.search} className="opacity-50 mr-4 size-5" />
       </View>
-
       <View className="h-6 justify-center items-center">
         {loading && <ActivityIndicator size="small" color="#888" />}
       </View>
-
       {!userVerified && (
         <>
           <Text className="text-red-500 text-center mt-4">
             Access denied. Please verify your account.
           </Text>
-
           <Button
             className="w-1/2 mx-auto bg-indigo-600 mt-4"
             onPress={() => router.replace("/Login")}
@@ -338,7 +375,6 @@ export default function Index(): JSX.Element {
           </Button>
         </>
       )}
-
       <FlatList
         data={displayedPapers}
         renderItem={({ item }) => (
@@ -364,15 +400,14 @@ export default function Index(): JSX.Element {
             <Text className="text-white text-center mt-10">
               {query
                 ? `No papers found for "${query}"`
-                : "Failed to load papers"}
+                : "Failed to load papers try again later."}
             </Text>
           ) : null
         }
       />
-
       <Modal visible={!!selectedPaper} transparent animationType="slide">
         <View className="flex-1 bg-black/80 justify-center px-6">
-          <View className="bg-[#1a1a2e] p-4 rounded-lg h-content">
+          <View className="bg-[#1a1a2e] p-4 rounded-lg">
             <ScrollView>
               {selectedPaper?.previewImageUrl && (
                 <Image
@@ -433,7 +468,6 @@ export default function Index(): JSX.Element {
           </View>
         </View>
       </Modal>
-
       <Text className="text-center text-gray-400 absolute right-0 left-0 bottom-1 text-xs">
         Best of luck for your exams!
       </Text>
