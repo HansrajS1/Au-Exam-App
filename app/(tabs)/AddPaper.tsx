@@ -38,9 +38,9 @@ export default function AddPaper() {
     setSubmitMsg(message);
     setIsSuccess(success);
     setTimeout(() => {
-      router.replace("/");
+      if (success) router.replace("/");
       setSubmitMsg("");
-    }, 800);
+    }, 1000);
   };
 
   const handleFilePick = async (type: "file" | "image") => {
@@ -113,24 +113,10 @@ export default function AddPaper() {
     } as any);
 
     try {
-      const response = await axios.post(
-        `${BASE_URL}/api/papers/upload`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
-
-      const newPaper = response.data;
-      const cachedData = await AsyncStorage.getItem("allPapers");
-      if (cachedData) {
-        const papers = JSON.parse(cachedData);
-        papers.unshift(newPaper);
-        await AsyncStorage.setItem("allPapers", JSON.stringify(papers));
-      }
-
+      await axios.post(`${BASE_URL}/api/papers/upload`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       showTemporaryMessage("Paper uploaded successfully!", true);
-
       setCollege("Alliance University");
       setCourse("");
       setSemester("");
@@ -246,10 +232,10 @@ export default function AddPaper() {
             </Text>
           </TouchableOpacity>
 
-          <View className="h-6 mb-2 items-center">
+          <View className="h-7 mb-2 items-center">
             {submitMsg && (
               <Text
-                className={`text-center ${
+                className={`text-center mt-2 ${
                   isSuccess ? "text-green-400" : "text-red-400"
                 }`}
               >

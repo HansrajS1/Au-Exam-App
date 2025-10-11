@@ -9,14 +9,7 @@ import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
 import { Button } from "react-native-paper";
 import debounce from "lodash.debounce";
-import React, {
-  JSX,
-  memo,
-  useCallback,
-  useState,
-  useEffect,
-  useRef,
-} from "react";
+import React, { JSX, memo, useCallback, useState, useEffect } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -88,137 +81,89 @@ export default function Index(): JSX.Element {
   const { userName, userVerified, userEmail } = useAuth();
   const [selected, setSelected] = useState<number | null>(null);
   const [query, setQuery] = useState<string>("");
-  const [allPapers, setAllPapers] = useState<Paper[]>([]);
-  const [displayedPapers, setDisplayedPapers] = useState<Paper[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedPaper, setSelectedPaper] = useState<PaperDetail | null>(null);
   const [userNameState, setUserNameState] = useState<string | null>(userName);
   const BASE_URL = process.env.EXPO_PUBLIC_BASE_URL || "http://localhost:3000";
   const router = useRouter();
-  const searchCancel = useRef(false);
+  const [papers, setPapers] = useState<Paper[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState<boolean>(false); 
+
+  const fetchPapers = useCallback(
+    async (currentPage: number, searchQuery: string) => {
+      setLoading(true);
+      try {
+        let url = `${BASE_URL}/api/papers?page=${currentPage}&limit=${PAGE_SIZE}`;
+        if (searchQuery) {
+          url = `${BASE_URL}/api/papers/search?subject=${encodeURIComponent(
+            searchQuery
+          )}&page=${currentPage}&limit=${PAGE_SIZE}`;
+        }
+
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Network request failed");
+
+        const data = await response.json();
+        const newPapers =
+          data.papers && Array.isArray(data.papers) ? data.papers : [];
+
+        setPapers((prev) =>
+          currentPage === 1 ? newPapers : [...prev, ...newPapers]
+        );
+        setHasMore(newPapers.length === PAGE_SIZE);
+      } catch (err) {
+        console.error("Fetch error:", err);
+        if (currentPage === 1) setPapers([]);
+      } finally {
+        setLoading(false);
+        setIsRefreshing(false);
+        setInitialLoadComplete(true);
+      }
+    },
+    [BASE_URL]
+  );
 
   useEffect(() => {
-    const loadAvatar = async (): Promise<void> => {
-      setUserNameState(userName);
-      const savedAvatar = await AsyncStorage.getItem("avatar");
-      if (savedAvatar) setSelected(parseInt(savedAvatar, 10));
-    };
-    loadAvatar();
-  }, [userName]);
-
-  const fetchAllPapers = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`${BASE_URL}/api/papers`);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
-      const sorted: Paper[] = Array.isArray(data)
-        ? data.sort((a, b) => b.id - a.id)
-        : [];
-      setAllPapers(sorted);
-      setDisplayedPapers(sorted.slice(0, PAGE_SIZE));
+    const handler = debounce(() => {
       setPage(1);
-      await AsyncStorage.setItem("allPapers", JSON.stringify(sorted));
-    } catch (err) {
-      setAllPapers([]);
-      setDisplayedPapers([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [BASE_URL]);
+      setHasMore(true);
+      fetchPapers(1, query);
+    }, 500);
 
-  const loadInitialData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const cachedPapers = await AsyncStorage.getItem("allPapers");
-      if (cachedPapers) {
-        const papers: Paper[] = JSON.parse(cachedPapers);
-        setAllPapers(papers);
-        setDisplayedPapers(papers.slice(0, PAGE_SIZE));
-        setPage(1);
-      } else {
-        await fetchAllPapers();
-      }
-    } catch {
-      setAllPapers([]);
-      setDisplayedPapers([]);
-    } finally {
-      setLoading(false);
+    handler();
+    return () => handler.cancel();
+  }, [query, fetchPapers]);
+
+  useEffect(() => {
+    if (page > 1 && !query) {
+      fetchPapers(page, "");
     }
-  }, [fetchAllPapers]);
+  }, [page, query, fetchPapers]);
 
   useFocusEffect(
     useCallback(() => {
-      let intervalId: number | undefined;
-      (async () => {
+      const loadAvatar = async (): Promise<void> => {
         setUserNameState(userName);
         const savedAvatar = await AsyncStorage.getItem("avatar");
-        if (savedAvatar) setSelected(parseInt(savedAvatar, 10));
-        if (userVerified) {
-          await loadInitialData();
-          intervalId = setInterval(fetchAllPapers, 90000);
+        if (savedAvatar) {
+          setSelected(parseInt(savedAvatar, 10));
         }
-      })();
-      return () => {
-        if (intervalId !== undefined) clearInterval(intervalId);
       };
-    }, [userVerified, userName, loadInitialData, fetchAllPapers])
-  );
 
-  const searchPapers = useCallback(
-    async (text: string) => {
-      searchCancel.current = false;
-      if (!userVerified) return;
-      setLoading(true);
-      if (!text.trim()) {
-        setDisplayedPapers(allPapers.slice(0, PAGE_SIZE));
+      loadAvatar();
+
+      if (userVerified && papers.length === 0) {
         setPage(1);
-        setLoading(false);
-        return;
+        setHasMore(true);
+        fetchPapers(1, query);
+      } else if (!userVerified) {
+        setPapers([]);
       }
-      try {
-        const response = await fetch(
-          `${BASE_URL}/api/papers/search?subject=${encodeURIComponent(text)}`
-        );
-        const data = await response.json();
-        const sorted: Paper[] = Array.isArray(data)
-          ? data.sort((a, b) => b.id - a.id)
-          : [];
-        if (!searchCancel.current) {
-          setDisplayedPapers(sorted);
-          setPage(1);
-        }
-      } catch {
-        if (!searchCancel.current) {
-          setDisplayedPapers([]);
-          setPage(1);
-        }
-      } finally {
-        if (!searchCancel.current) setLoading(false);
-      }
-    },
-    [userVerified, BASE_URL, allPapers]
+    }, [userVerified, userName ,fetchPapers]) 
   );
-
-  const debouncedSearch = useCallback(debounce(searchPapers, 400), [
-    searchPapers,
-  ]);
-  useEffect(() => {
-    searchCancel.current = false;
-    debouncedSearch(query);
-    return () => {
-      searchCancel.current = true;
-      debouncedSearch.cancel();
-    };
-  }, [query, debouncedSearch]);
-
-  useEffect(() => {
-    if (userVerified && !query.trim()) {
-      loadInitialData();
-    }
-    // eslint-disable-next-line
-  }, [userVerified]);
 
   const fetchPaperById = async (id: number): Promise<void> => {
     try {
@@ -308,28 +253,31 @@ export default function Index(): JSX.Element {
   };
 
   const handleDelete = async (id: number) => {
-    const updatedPapers = allPapers.filter((p) => p.id !== id);
-    setAllPapers(updatedPapers);
-    setDisplayedPapers(updatedPapers.slice(0, PAGE_SIZE));
-    await AsyncStorage.setItem("allPapers", JSON.stringify(updatedPapers));
+    const originalPapers = [...papers];
+    setPapers((prev) => prev.filter((p) => p.id !== id));
     setSelectedPaper(null);
+
     try {
       const response = await fetch(`${BASE_URL}/api/papers/${id}`, {
         method: "DELETE",
       });
       if (!response.ok) throw new Error("Server delete failed");
     } catch {
-      Alert.alert("Error", "Failed to delete paper. Please try again.");
-      await loadInitialData();
+      Alert.alert("Error", "Failed to delete paper. Reverting changes.");
+      setPapers(originalPapers);
     }
   };
 
   const loadMorePapers = () => {
-    if (loading || !!query.trim() || displayedPapers.length >= allPapers.length)
-      return;
-    const nextPage = page + 1;
-    setDisplayedPapers(allPapers.slice(0, nextPage * PAGE_SIZE));
-    setPage(nextPage);
+    if (loading || !hasMore || query) return;
+    setPage((prevPage) => prevPage + 1);
+  };
+
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    setPage(1);
+    setHasMore(true);
+    fetchPapers(1, query);
   };
 
   return (
@@ -376,7 +324,7 @@ export default function Index(): JSX.Element {
         </>
       )}
       <FlatList
-        data={displayedPapers}
+        data={papers}
         renderItem={({ item }) => (
           <PaperCard
             paper={item}
@@ -390,13 +338,15 @@ export default function Index(): JSX.Element {
         contentContainerStyle={{ paddingBottom: 80 }}
         onEndReached={loadMorePapers}
         onEndReachedThreshold={0.5}
+        onRefresh={onRefresh}
+        refreshing={isRefreshing}
         ListFooterComponent={
-          loading && displayedPapers.length > 0 ? (
+          loading && papers.length > 0 ? (
             <ActivityIndicator color="#888" style={{ marginTop: 10 }} />
           ) : null
         }
         ListEmptyComponent={
-          !loading ? (
+          !loading && initialLoadComplete ? (
             <Text className="text-white text-center mt-10">
               {query
                 ? `No papers found for "${query}"`

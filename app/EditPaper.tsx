@@ -114,17 +114,6 @@ export default function EditPaper() {
       });
 
       const updatedPaper = response.data;
-
-      const cachedData = await AsyncStorage.getItem("allPapers");
-      if (cachedData) {
-        let papers: Paper[] = JSON.parse(cachedData);
-        const indexToUpdate = papers.findIndex(p => p.id === updatedPaper.id);
-        if (indexToUpdate !== -1) {
-          papers[indexToUpdate] = updatedPaper;
-          await AsyncStorage.setItem("allPapers", JSON.stringify(papers));
-        }
-      }
-      
       showTemporaryMessage("Paper updated successfully!", true);
       setInitialPaper(updatedPaper);
       setPaper(updatedPaper);
