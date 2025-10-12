@@ -90,10 +90,34 @@ export default function Index(): JSX.Element {
   const [papers, setPapers] = useState<Paper[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
-  const [initialLoadComplete, setInitialLoadComplete] = useState<boolean>(false); 
+  const [initialLoadComplete, setInitialLoadComplete] =
+    useState<boolean>(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      const loadAvatar = async (): Promise<void> => {
+        setUserNameState(userName);
+        const savedAvatar = await AsyncStorage.getItem("avatar");
+        if (savedAvatar) {
+          setSelected(parseInt(savedAvatar, 10));
+        }
+      };
+
+      loadAvatar();
+
+      if (userVerified && papers.length === 0) {
+        setPage(1);
+        setHasMore(true);
+        fetchPapers(1, query);
+      } else if (!userVerified) {
+        setPapers([]);
+      }
+    }, [userVerified, userName])
+  );
 
   const fetchPapers = useCallback(
     async (currentPage: number, searchQuery: string) => {
+      if (userVerified) return;
       setLoading(true);
       try {
         let url = `${BASE_URL}/api/papers?page=${currentPage}&limit=${PAGE_SIZE}`;
@@ -142,28 +166,6 @@ export default function Index(): JSX.Element {
       fetchPapers(page, "");
     }
   }, [page, query, fetchPapers]);
-
-  useFocusEffect(
-    useCallback(() => {
-      const loadAvatar = async (): Promise<void> => {
-        setUserNameState(userName);
-        const savedAvatar = await AsyncStorage.getItem("avatar");
-        if (savedAvatar) {
-          setSelected(parseInt(savedAvatar, 10));
-        }
-      };
-
-      loadAvatar();
-
-      if (userVerified && papers.length === 0) {
-        setPage(1);
-        setHasMore(true);
-        fetchPapers(1, query);
-      } else if (!userVerified) {
-        setPapers([]);
-      }
-    }, [userVerified, userName ,fetchPapers]) 
-  );
 
   const fetchPaperById = async (id: number): Promise<void> => {
     try {

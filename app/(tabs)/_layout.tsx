@@ -6,12 +6,12 @@ import { Image, ImageBackground, Text, View } from "react-native";
 const TabIcon = ({ focused, icon, title }: any) => {
   return (
     focused ? (
-      <ImageBackground source={images.highlight} className="flex flex-row w-full min-h-16 min-w-[120px] justify-center items-center rounded-full overflow-hidden">
+      <ImageBackground source={images.highlight} className=" flex-row w-full min-h-16 min-w-[120px] justify-center items-center rounded-full overflow-hidden">
         <Image source={icon} tintColor="#151312" className="size-5" />
         <Text className="text-secondary text-base font-semibold ml-4">{title}</Text>
       </ImageBackground>
     ) : (
-      <View className="size-full  justify-center items-center rounded-full">
+      <View className="size-full justify-center items-center rounded-full">
         <Image source={icon} tintColor="#A8B5DB" className="size-5" />
       </View>
     )
@@ -27,7 +27,7 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: "#0f0D23",
           borderRadius: 50,
-          marginHorizontal: 20,
+          marginHorizontal: 2,
           marginBottom: 33,
           height: 52,
           position: "absolute",
@@ -40,6 +40,8 @@ export default function TabsLayout() {
           height: "100%",
           justifyContent: "center",
           alignItems: "center",
+          paddingLeft: 2,
+          paddingRight: 2
         }
       }}
     >
@@ -63,6 +65,18 @@ export default function TabsLayout() {
             focused={focused}
             icon={icons.add}
             title="Add Paper"
+          />
+        )
+      }}
+      />
+      <Tabs.Screen name="AskAI" options={{
+        title: "Ask AI",
+        headerShown: false,
+        tabBarIcon: ({ focused }) => (
+          <TabIcon
+            focused={focused}
+            icon={icons.askai}
+            title="Ask AI"
           />
         )
       }}

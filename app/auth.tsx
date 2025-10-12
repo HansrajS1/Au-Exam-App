@@ -66,7 +66,7 @@ export default function AuthScreen() {
       setError(null);
     } catch (err) {
       console.error(err);
-      setError("Failed to send recovery email.",err);
+      setError("Failed to send recovery email.");
     }
   };
 
