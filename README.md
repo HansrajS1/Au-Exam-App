@@ -94,7 +94,6 @@ npx expo start --dev-client
 ### Option 2: CLI
 
 ```bash
-npx expo prebuild
 cd android
 ./gradlew clean
 ./gradlew assembleRelease
